@@ -1,157 +1,170 @@
-# SKILL: MTG Oathbreaker Deck Builder & Upgrader
+# SKILL: MTG Oathbreaker Deck Builder & Upgrader (v5)
 
 ### Description
-An agentic AI instruction set for building, auditing, and upgrading Magic: The Gathering (MTG) **Oathbreaker** decks. Oathbreaker is a 60-card singleton multiplayer format built around a Planeswalker (the "Oathbreaker") and a paired instant/sorcery (the "Signature Spell"), both of which live in the command zone. This skill rescales the Commander 8x8 methodology to Oathbreaker's smaller 58-card maindeck, applies command-zone-aware tax math, and calibrates ratios and curve for a 20-life, 3–5 player free-for-all.
+
+An agentic AI instruction set for building, auditing, and upgrading Magic: The Gathering (MTG) Oathbreaker decks. It adapts the Commander 8x8 framework into a systematic **6x6 categorization method** (1 Oathbreaker + 1 Signature Spell + 22 Lands + 36 Maindeck Spells in 6 categories of 6 cards), incorporating Oathbreaker-specific mana curve targets, color-scaled mana base construction, strict **Mandatory Card Verification & Anti-Hallucination Protocols**, automated dual-source retrieval (EDHrec JSON + Scryfall recency & keyword queries), and exportable plaintext decklist generation.
 
 ---
 
-## 0. Format Rules (Authoritative — do not violate)
+## 1. Core Architectural Framework
 
-* **Deck Composition**: Exactly **60 total cards**:
-  * **1 Oathbreaker** — a Planeswalker card (in command zone).
-  * **1 Signature Spell** — an instant OR sorcery card (in command zone).
-  * **58 maindeck cards**.
-* **Singleton**: Only one copy of any card except basic lands.
-* **Color Identity**: Defined by the mana symbols in the Oathbreaker's cost AND rules text. Every card in the deck (including the Signature Spell) may only use mana symbols present on the Oathbreaker. Colorless cards are always allowed. The Signature Spell must match this identity.
-* **Life & Players**: Start at **20 life**; typically **3–5 player free-for-all**. There is **no commander damage**.
-* **Command Zone Mechanics**:
-  * **Oathbreaker Tax**: Cast from command zone for its normal cost **+2 mana for each previous time** it was cast from the command zone this game. If it would leave the battlefield to library/hand/graveyard/exile, you may return it to the command zone instead.
-  * **Signature Spell Access**: You may cast your Signature Spell **only while your Oathbreaker is on the battlefield under your control**.
-  * **Signature Spell Tax**: Cast from command zone for its normal cost **+2 mana for each previous time** it was cast from the command zone this game. On resolution (or anywhere it would otherwise go), it returns to the command zone instead of the graveyard.
-* **Banned List**: Oathbreaker maintains its own banned list (oathbreakermtg.org/banned-list). When legality matters, flag that the user should verify against the current banned list rather than assuming.
+### A. The 6x6 Categorization Method
 
----
-
-## 1. Core Frameworks & Rules
-
-### A. The Rescaled Categorization Framework (6x6 Core)
-Oathbreaker's 58-card maindeck is ~59% the size of Commander's 99. The 8x8 grid does not fit; use a **6-category baseline** instead.
-
-* **Core Math**: `58 maindeck = 24 Lands + 34 Spells` (baseline). Organize spells into **6 categories of ~5–6 cards**, scaling with archetype.
-* **The Core Four (Essential Infrastructure — ~20 cards)**:
-  1. **Ramp (5–6 cards)**: Mana acceleration (rocks, dorks, signets, Talismans). Low rocks matter more because they also help pay command-zone tax.
-  2. **Card Draw (5–6 cards)**: Sustained engines and burst refills.
-  3. **Removal (5–7 cards)**: Spot removal (instant-speed preferred) + 1–2 board wipes.
-  4. **Oathbreaker/Signature Synergy (6–8 cards)**: Cards that directly protect, enable, or amplify the Oathbreaker and recur/discount the Signature Spell.
-* **Strategy-Specific Categories (~12–16 cards)**: 2–3 custom categories tailored to the archetype (Win Conditions, Protection, Proliferate, Evasion, Enablers, Tutors).
-* **Grid Variants**: Treat the layout as flexible — a common split is `6-6-6-6-5-5` or a lean `5-5-5-5-5-5` with more land/ramp. Do not force rigid 8-card bins.
+- **Core Math**: An Oathbreaker deck consists of **1 Oathbreaker (Planeswalker) + 1 Signature Spell (Instant/Sorcery) + 22 Lands + 36 Maindeck Spells** organized into 6 distinct categories of 6 cards each (60 cards total).
+- **Command Zone (2 Cards)**:
+  1. **Oathbreaker**: 1 Planeswalker card that defines color identity and deck strategy.
+  2. **Signature Spell**: 1 Instant or Sorcery card within the Oathbreaker's color identity. Castable from the Command Zone only while the Oathbreaker is on the battlefield (command zone tax applies).
+- **The Core Three Infrastructure Categories (18 Cards)**:
+  1. **Ramp & Acceleration (6 cards)**: Low-cost mana acceleration (1-2 CMC rocks, dorks, land ramp, cost reducers) ensuring reliable turn 2-3 Planeswalker casting.
+  2. **Card Draw & Selection (6 cards)**: Low-cost draw engines, cantrips, or refills tailored to a fast 60-card format.
+  3. **Removal & Interaction (6 cards)**: Cheap spot removal, counterspells, or asymmetric board wipes to protect your Planeswalker and disrupt opponents.
+- **Strategy-Specific Categories (18 Cards)**: 3 custom categories of 6 cards tailored to the deck's primary archetype and command zone synergies (e.g., Planeswalker Protection/Loyalty Synergies, Signature Spell Synergies, Win Conditions/Finishers, Tribal Synergies, or Evasion/Enablers).
 
 ### B. Baseline Ratios & Infrastructure Requirements
-Scaled down from Commander. The command zone guarantees access to the Oathbreaker + Signature Spell, so dedicated "finisher" slots can be fewer — but tax escalation punishes over-reliance on recasting.
 
-* **Total Mana Sources**: Lands plus Ramp should equal **~28–32 total mana sources** (vs 47–50 in Commander).
-  * *Standard baseline*: **24 Lands + 6 Ramp** = 30 mana sources.
-  * *Low-curve / aggressive*: **22–23 Lands + 5–6 Ramp**.
-  * *High-curve / 5+ CMC Oathbreaker or recast-heavy*: **25–26 Lands + 7–8 Ramp**.
-* **Infrastructure Floor Metrics (58-card scale)**:
-  * **Card Draw Floor**: Minimum **5 cards** (6+ preferred). Smaller decks dig faster but still flood/stall without draw.
-  * **Ramp Floor**: Minimum **5 cards**. Prioritize 1–2 CMC rocks so they double as tax payment.
-  * **Targeted Removal**: **5–7 cards** (instant-speed preferred).
-  * **Board Wipes**: **1–2 cards** (lower than Commander — your Oathbreaker is a loyalty asset vulnerable to your own wipes; prefer asymmetric or planeswalker-sparing wipes).
-  * **Win Conditions**: **3–5 dedicated slots or clear lethal lines**. The Oathbreaker + Signature Spell often ARE a win condition engine, reducing dedicated finisher count.
-  * **Protection**: **3–5 cards** (critical — losing the Oathbreaker to removal taxes every recast by +2 and resets ultimates).
-  * **Flex / Synergy**: **~8–14 slots**.
-* **Multi-Role Cards**: Assign multi-purpose spells (e.g., *Beast Within*, *Abrade*, *Mystic Confluence*) to whichever core category is currently weakest. In the tighter 58-card build, multi-role density matters MORE than in Commander.
+- **Total Mana Sources**: Lands (22) + Ramp (6) = **28 total mana sources** (~46.7% of deck).
+  - *Standard baseline*: **22 Lands + 6 Ramp**.
+  - *High-curve / 5+ CMC Oathbreaker*: **23-24 Lands + 7-8 Ramp**.
+  - *Ultra-lean / 2-3 CMC Oathbreaker*: **20-21 Lands + 5-6 Ramp**.
+- **Infrastructure Floors**:
+  - **Card Draw Floor**: Minimum **6 cards**.
+  - **Ramp Floor**: Minimum **6 cards** (1-2 CMC preferred).
+  - **Targeted Removal Floor**: **6-8 cards** (instant-speed preferred).
+  - **Board Wipes Floor**: **2 cards** (asymmetric or low-CMC preferred).
+  - **Planeswalker Protection Floor**: **4-6 cards** (chump blockers, pillowfort, counterspells, hexproof).
+  - **Win Conditions Floor**: **4-6 dedicated slots** or clear lethal paths (including Signature Spell combos).
 
-### C. Mana Base & Color Scaling Rules
-Land counts are lower (22–26 vs 35–38) and color identity is dictated by the Oathbreaker. Because the Signature Spell and Oathbreaker demand on-color mana early, **fixing speed and untapped sources are prioritized over raw count**.
+### C. Mana Base & Color Scaling Rules (22-Land Baseline)
 
-* **Color Count Scaling**:
-  * **Mono-Color**: 23–25 lands = ~18–21 basics + 4–6 colorless utility lands (*Rogue's Passage*, *War Room*, *Castle* lands).
-  * **Two-Color**: 23–25 lands, dual lands + ~3 utility lands; keep enough basics for fetch/retrieval.
-  * **Three-Color**: 24–26 lands, heavy dual/tri fixing, 4–6 basics, max 2 utility lands.
-  * **Four / Five-Color** (rare — requires a WUBRG-ish planeswalker): nearly all lands produce multiple colors; 1 basic per color max; 0–1 colorless utility lands.
-* **Land Tiers & Quality Priorities** (same tier logic as Commander, but untapped matters more at 20 life in faster games):
-  * *Tier 1*: Original Duals, Fetch Lands.
-  * *Tier 2*: Shock Lands, Horizon/Canopy Lands.
-  * *Tier 3*: Pain Lands, Check Lands, Fast Lands (great in a low land count), Slow Lands.
-  * *Tier 4*: Filter Lands, Triomes, Pathways.
-  * *Tier 5*: Tap Lands (budget fallback — minimize; tempo loss is harsher in 60-card multiplayer).
-  * *Budget Rule*: Prioritize untapped pain/fast lands, Command Tower, Exotic Orchard, and dual-producing utility over always-tapped lands.
+- **Baseline**: Begin with 22 lands and scale based on color count and curve.
+- **Color Count Scaling**:
+  - **Mono-Color**: 16-18 Basic Lands + 4-6 Utility Lands (e.g., *Karn's Bastion*, *War Room*, *Interplanar Beacon*).
+  - **Two-Color**: 12-14 Basics + 8-10 dual lands + 2-3 utility lands.
+  - **Three-Color**: 6-8 Basics + 14-16 dual/tri-lands + 1-2 utility lands.
+- **Land Quality Priorities**:
+  - *Untapped Budget Duals*: Pain Lands, Bond Lands, Shock Lands, Fast Lands.
+  - *Planeswalker Utility Lands*: *Interplanar Beacon*, *Karn's Bastion*, *Mobilized District*, *Forge of Heroes*.
 
 ### D. Mana Curve & Casting Cost Calibration
-Oathbreaker games skew faster and lower than Commander because the deck is smaller and the command zone provides a reliable engine.
 
-* **Average Mana Value Target**: Aim for **2.3 to 3.0** across non-land spells (lower than Commander's 2.8–3.5).
-  * *Avg CMC < 2.3*: Hyper-aggressive, spellslinger, or combo decks.
-  * *Avg CMC > 3.0*: High-curve decks needing extra land/ramp support and a bimodal shape.
-* **Curve Distribution Rules**:
-  * At least **55–60% of non-land spells MUST cost 3 or less** (tighter than Commander because the deck draws through itself faster and must pay escalating command-zone tax).
-  * The bulk of infrastructure sits at **1–3 mana**.
-  * Reserve open mana to recast the Signature Spell each turn — budget the curve so you can both develop AND pay the Signature Spell tax (+2 per prior cast).
-* **Oathbreaker CMC Adjustments**:
-  * *Cheap Oathbreaker (2–3 CMC)*: Enables a low, lean, aggressive curve; you redeploy it cheaply after wipes.
-  * *Mid Oathbreaker (4–5 CMC)*: Standard curve; prioritize protection so you avoid repeated +2 recast taxes.
-  * *Expensive Oathbreaker (6+ CMC)*: Requires a **bimodal curve** — dense 1–3 CMC ramp/protection to land it once and keep it alive, since each recast is brutally taxed.
-* **Signature Spell Tax Planning**: Treat the Signature Spell's effective cost as `printed + 2 × (times already cast)`. A spell you intend to cast every turn (e.g., a cheap burn/draw/bounce spell) is far better than an expensive one-shot, because the tax compounds. Favor Signature Spells at **1–3 CMC** with repeatable value.
-* **Practical Mana Costs**: Evaluate by true casting cost (Convoke, Delve, cost reduction), e.g., *Treasure Cruise* as 1–2 CMC.
-
-### E. Strategic Archetype Ratio Bends (Oathbreaker scale, 58-card maindeck)
-Adjust the baseline based on the deck's primary archetype. Counts are maindeck cards (Oathbreaker + Signature Spell excluded).
-
-| Archetype | Creatures | Removal | Wipes | Card Draw | Lands | Ramp | Key Archetype Slots |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Baseline** | ~12–16 | 5–7 | 1–2 | 5–6 | 23–25 | 5–7 | ~8–14 Synergy |
-| **Aggro** | 18–22 | 3–4 | 0–1 | 4–5 | 21–23 | 5–6 | Threat density; low curve |
-| **Control** | 6–10 | 8–10 | 3–4 | 6–8 | 25–26 | 6–7 | Answers + card advantage |
-| **Combo** | Low/Var | 4–5 | 0–2 | 6–8 | 23–25 | 6–7 | 2–4 Tutors, 3–4 Protection, 3–5 Combo pieces |
-| **Voltron** | Low | 4–5 | 0–1 | 5–6 | 22–24 | 5–7 | 8–10 Equip/Auras, 4–5 Protection, 3–4 Evasion |
-| **Spellslinger** | 4–6 | 6–8 | 1–2 | 6–8 | 23–25 | 5–7 | 18–24 Instants/Sorceries, 2–4 Cost Reducers |
-| **Superfriends** | 3–6 | 4–6 | 3–5 (asym.) | 5–6 | 24–26 | 6–7 | 6–10 extra Planeswalkers, 3–5 Proliferate |
-| **Tokens/Aristocrats** | Engine | 4–6 | 1–2 | 5–6 | 23–25 | 5–7 | 4–6 Payoffs, 6–8 Token/Recur |
+- **Average Mana Value Target**: Aim for **2.2 to 3.0** across maindeck non-land spells.
+  - *Avg CMC < 2.4*: Aggro, Burn, or fast Combo.
+  - *Avg CMC 2.4 - 2.8*: Midrange, Spellslinger, or Planeswalker Control.
+- **Curve Distribution Rules**:
+  - At least **65% of maindeck spells MUST cost 3 or less**.
+  - Bulk of spells sit at **1-3 mana** due to 20 starting life and fast gameplay pace.
+- **Signature Spell Cost Calibration**:
+  - Signature Spells should ideally cost **1 to 3 mana** to allow repeated casting with the command zone tax (+2 mana per recast).
+  - Spells costing 4+ mana must serve as game-ending finishers or total board resets.
 
 ---
 
-## 2. Agentic Workflow Instructions
+## 2. Archetype Subskill Routing & Signature Spell Selection
 
-### Workflow A: Building a New Deck from Scratch
-1. **Define Context**:
-   * Identify the **Oathbreaker (planeswalker)**: its CMC, color identity (cost + rules text symbols), and loyalty abilities.
-   * Choose a **Signature Spell** (instant/sorcery) within that color identity. Prefer **1–3 CMC repeatable value** given tax escalation. Confirm it synergizes with the Oathbreaker.
-   * Determine the strategy archetype.
-2. **Establish Mana Foundation**:
-   * Calculate Lands (22–26) + Ramp (5–7) to hit **~28–32 total mana sources**.
-   * Weight ramp toward 1–2 CMC rocks so they also pay command-zone tax.
-   * Select utility land allowance by color count (Mono: 4–6, 2-Color: ~3, 3+ Color: 0–2).
-3. **Build the Non-Land Matrix (~34 spells)**:
-   * Allocate Core Four: Ramp, Draw, Removal, Oathbreaker/Signature Synergy.
-   * Define 2–3 custom archetype categories.
-   * Ensure a **Protection package (3–5 cards)** to keep the Oathbreaker alive and avoid recast tax.
-4. **Curve & Win Condition Audit**:
-   * Verify Average Mana Value is **2.3–3.0**.
-   * Confirm **≥55% of non-land spells cost ≤3 mana**.
-   * Confirm the deck has **≥3 clear win lines**, counting the Oathbreaker/Signature engine where applicable.
-   * Validate every card is **on-color** per the Oathbreaker's identity and the deck is **singleton**.
+### A. Signature Spell Selection & Recommendation Protocol
 
-### Workflow B: Auditing & Upgrading an Existing Decklist
-1. **Legality Audit (do this first)**:
-   * Exactly 60 cards: 1 planeswalker Oathbreaker + 1 instant/sorcery Signature Spell + 58 maindeck.
-   * Singleton (basics exempt). Flag duplicates.
-   * Every card on-color vs the Oathbreaker's identity; flag off-color symbols.
-   * Flag any cards the user should check against the current banned list.
-2. **Ratio & Infrastructure Audit**:
-   * Mana sources: is Lands + Ramp ≥ 28?
-   * Card Draw ≥ 5? Removal ≥ 5? Wipes 1–2 (asymmetric preferred)?
-   * Protection ≥ 3 to defend the Oathbreaker?
-   * ≥3 clear win lines?
-3. **Identify Cut Candidates**:
-   * 5+ CMC spells that only affect a single target/opponent.
-   * Redundant 4+ CMC spells duplicating cheaper effects.
-   * Symmetric board wipes that kill your own Oathbreaker's board/loyalty support with no upside.
-   * A high-CMC Signature Spell whose tax makes repeat casting impractical — recommend a cheaper repeatable alternative.
-   * "Win-more" cards that are dead when behind.
-4. **Execute Upgrade Recommendations**:
-   * Swap single-purpose cards for multi-role spells (density matters more at 58 cards).
-   * Lower the curve toward the 2.3–3.0 target; add 1–2 CMC rocks for tax payment.
-   * Add protection (hexproof grants, counters, flicker, phase-out) for the Oathbreaker.
-   * Upgrade to untapped fixing lands.
+Because Oathbreaker requires pairing every Planeswalker with an Instant or Sorcery Signature Spell, the AI agent MUST systematically evaluate and recommend the top 3-4 Signature Spell options using a 4-tier functional taxonomy:
+
+1. **The 4 Functional Signature Spell Taxonomy Categories**:
+   - **Tier 1: Evasion & Enabler Spells (Low-CMC Aggro/Tempo)**: Spells that make your Oathbreaker or attackers unblockable or grant haste/trample (*Enter the Enigma*, *Slip Through Space*, *Distortion Strike*, *Shadow Rift*).
+   - **Tier 2: Engine & Card Selection Spells (Consistency)**: Cheap cantrips and tutors that ensure you never run out of gas or can repeatedly search for combo pieces (*Brainstorm*, *Lim-Dûl's Vault*, *Ponder*, *Demonic Tutor*, *Splinter's Technique*, *Light Up the Stage*).
+   - **Tier 3: Protection & Interaction Spells (Control/Defense)**: Instant-speed answers or defensive shields castable on demand to protect your Oathbreaker (*An Offer You Can't Refuse*, *Counterspell*, *Heroic Intervention*, *Silence*, *Infernal Grasp*).
+   - **Tier 4: High-Impact Finishers / Board Resets (Late-Game)**: Game-ending spells or asymmetric wipes cast when you have established board control (*Teferi's Protection*, *Exsanguinate*, *Cyclonic Rift*, *Toxic Deluge*).
+
+2. **Data Sourcing for Signature Spell Recommendations**:
+   - **Source A (EDHrec Card JSON)**: Fetch `https://json.edhrec.com/pages/cards/{planeswalker-slug}.json` or `/commanders/`. Parse the `cardlists` object for "Instants" and "Sorceries" to see top community inclusions in decks featuring that Planeswalker.
+   - **Source B (Scryfall Oathbreaker Filter)**: Execute `https://scryfall.com/search?q=f:oathbreaker+(t:instant+or+t:sorcery)+ci:{color_identity}+cmc<=3&order=edhrec` to find high-synergy low-cost spells in the exact color identity.
+   - **Source C (Oathbreaker Command Tax Heuristic)**: Prioritize spells with **CMC 1 to 2** or spells with mechanics like *Flashback*, *Rebound*, *Buyback*, or *Draw a Card* so the spell remains castable even as command tax increases (+2 mana per cast).
 
 ---
 
-## 3. Output Format Standard
-When presenting deck builds or upgrades, format responses into these sections:
-1. **Deck Architecture Summary**: Oathbreaker (+CMC/colors), Signature Spell (+CMC, effective taxed cost), Archetype, Lands/Ramp total, Average CMC.
-2. **Command Zone Plan**: How the Oathbreaker and Signature Spell interact, the intended recast cadence, and tax budgeting.
-3. **Categorized Card List (6-Category Grid)**: Grouped by category with multi-role annotations; 58 maindeck cards.
-4. **Mana Base Breakdown**: Color distribution, untapped duals, utility lands (22–26 total).
-5. **Ratio & Curve Audit Table**: Current stats vs Oathbreaker baseline targets (Draw, Ramp, Removal, Protection, ≤3 CMC %, win lines) plus legality checks (60 cards, singleton, on-color).
+## 3. Strict Verification & Dual-Source Data Retrieval Protocol
+
+### A. MANDATORY Anti-Hallucination & Card Verification Gate
+
+**Rule**: The AI agent MUST NEVER rely on unverified memory, state card abilities from memory without double-checking, or guess card types/effects.
+
+1. **Oracle Text & Card Type Verification**: Before declaring what a card does or assigning it to a functional category (e.g. verifying if a spell is a tutor, bounce, draw, or removal), the agent MUST verify its exact Oracle text, card type, and CMC via Scryfall or EDHrec JSON endpoints.
+2. **Color Identity Check**: Confirm every card strictly matches the Oathbreaker's color identity before adding it to a decklist.
+3. **Format Legality Check**: Verify the card is legal in Oathbreaker (`f:oathbreaker`).
+
+### B. Flexible New-Card Discovery Protocol (Scryfall)
+
+EDHrec historical deck counts lag behind new card releases (Universes Beyond sets like TMNT, Marvel, Final Fantasy, recent expansion blocks, or niche archetype mechanics). To ensure new cards are evaluated fairly alongside established staples:
+
+1. **Targeted Scryfall Queries**: Execute parallel Scryfall searches for recent sets and relevant keywords:
+   - `https://scryfall.com/search?q=f:oathbreaker+ci:{color_identity}+(year>=2024+or+s:{set_code})&order=edhrec`
+   - `https://scryfall.com/search?q=f:oathbreaker+ci:{color_identity}+(o:"{mechanic_clause}"+or+kw:{keyword}+or+t:{type})&order=edhrec`
+2. **Flexible Integration Policy**: Actively evaluate newly released or set-specific cards and integrate synergistic options naturally across existing functional categories rather than forcing a rigid dedicated category.
+
+### C. EDHrec JSON Priority Protocol
+
+Fetch EDHrec data using dual endpoints:
+
+1. `https://json.edhrec.com/pages/commanders/{planeswalker-slug}.json` (if EDH-legal commander)
+2. `https://json.edhrec.com/pages/cards/{planeswalker-slug}.json` (fallback for planeswalkers legal only in Oathbreaker)
+
+### D. Notebook Source Persistence Policy
+
+When running within a notebook environment:
+
+- **EDHrec JSON Endpoints**: Fetch raw JSON content and save as text sources (`add_sources` with `type: 'text'`).
+- **Scryfall Search URLs (HTML)**: Add directly as web URL sources (`add_sources` with `type: 'web_url'`).
+
+---
+
+## 4. Exportable Plaintext Decklist Artifact Standard
+
+When an Oathbreaker build is finalized, the agent MUST generate a clean, unformatted `.txt` file artifact in `/workspace/out/{oathbreaker-slug}-oathbreaker-decklist.txt`.
+
+### Format Requirements
+
+```text
+// Oathbreaker
+1 {Planeswalker Name}
+
+// Signature Spell
+1 {Instant or Sorcery Name}
+
+// Deck
+1 {Card Name}
+...
+10 {Basic Land Name}
+```
+
+- Total maindeck card count MUST equal **58** (+ 1 Oathbreaker + 1 Signature Spell = 60 total cards).
+
+---
+
+## 5. Agentic Workflow Instructions
+
+### Workflow A: Building or Auditing an Oathbreaker Deck
+
+1. **Oathbreaker & Signature Spell Selection**:
+   - Identify Oathbreaker (Planeswalker) and Signature Spell (Instant/Sorcery) pairing.
+   - Run Signature Spell recommendation protocol to select optimal 1-3 CMC spell.
+2. **Dual-Source Retrieval & Verification**:
+   - Query EDHrec JSON for Planeswalker synergies (`/cards/{slug}.json` or `/commanders/`).
+   - Execute mandatory Scryfall recency & keyword queries (`year>=2024`, `s:{set_code}`, `o:"{mechanic}"`).
+   - **Verification Gate**: Check Oracle text, color identity, and card type for every candidate card before slotting.
+3. **Establish Mana Foundation**:
+   - Calculate Lands (22) + Ramp (6) = 28 total mana sources.
+4. **Build the 6x6 Non-Land Matrix**:
+   - Allocate Core 3 categories (18 cards): Ramp (6), Draw (6), Removal (6).
+   - Allocate 3 Custom Strategy categories (18 cards), integrating synergistic new set releases alongside established staples.
+5. **Curve & Ratio Audit**:
+   - Target Average CMC: **2.2 to 3.0**.
+   - Verify **>=65% of maindeck spells cost 3 or less**.
+6. **Generate Exportable Decklist Artifact**:
+   - Write plaintext decklist to `/workspace/out/{oathbreaker-slug}-oathbreaker-decklist.txt`.
+
+---
+
+## 7. Output Format Standard
+
+Present Oathbreaker builds in four distinct sections:
+
+1. **Oathbreaker Architecture Summary**: Oathbreaker, Signature Spell, Archetype, Lands/Ramp total, and Average CMC.
+2. **Categorized Card List (6x6 Grid)**: Grouped by category with multi-role annotations.
+3. **Mana Base Breakdown**: Color distribution, utility lands (*Karn's Bastion*, *Interplanar Beacon*), and budget duals.
+4. **Ratio & Curve Audit Table**: Showing current stats vs. baseline targets.
